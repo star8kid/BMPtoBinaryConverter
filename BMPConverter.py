@@ -1,6 +1,6 @@
 from PIL import Image
 import io
-
+import os
 
 # Program Goals
 
@@ -12,41 +12,52 @@ import io
 
 # Define Filepath Constants (Edit these to select which file to convert)
 
-inputPath = "Input/testFile.bmp"
-outputPath = "Output/testFileBinary.h"
+inputPath = "Input/HeartBMP.bmp"
+fileName = os.path.basename(inputPath)
+outputPath = "Output/" + str(fileName)[0:len(fileName) - 4] + "Binary.h"
+# outputPath = "Output/testFileBinary.h"
 
 
 def BMPtoBinary(arrayName, file):
     image = Image.open(file)
     imageConverted1 = image.convert("L")
-    imageConverted1.show()
-    # imageConverted2 = image.convert("1")
-    # imageConverted2.show()
+    width, height = image.size
+    totalPixels = 0
+    imageList = list(image.getdata())
+    # Define a string to hold the bitmap array as text
+    # COL_SIZE is a constant I have defined in my TMP Github Repository
+    bitmapData = "#pragma once\n"
+    bitmapData += "#include \"Arduino.h\""
+    bitmapData += "\n\nclass BinaryArrays {\n"
+    bitmapData += "public:\n"
+    bitmapData += " uint8_t " + str(arrayName) + " [COL_SIZE] = \n"
+    bitmapData += " {\n"
+
 
     # Start writing out code to write out uint8_t binary
-    width, height = image.size
+    # Note the the zero-indexing will make the loops end at height - 1 and width - 1
     for a in range (height):
+        # Iterating through height will show how many binary values will be in the array
+        bitmapData += "  0b"
         for b in range (width):
+            # Iterating through the .BMP width will actually determine the values of each bit
+            # bitmapData += "0"
+            if (imageList[b] == 255):
+                bitmapData += "0"
+            else:
+                bitmapData += "1"  
+        # Once the width has been determined, add a "," to end the element value and start on a newline
+        if (a == (height - 1)):
+            bitmapData += "\n };"
+        else:
+            bitmapData += ",\n"
+    bitmapData += "\n};"
 
-            print("Filler Text!")
-    pass
-    # print(width)
-    # print(height)
-
-    return arrayName
-
-
-# BMPtoBinary("testFrames", inputPath)
-
-image = Image.open(r"./Input/testFile.bmp")
-imageConverted1 = image.convert("L")
-imageConverted1.show()
-
-
+    return bitmapData
 
 
-
-# index = image.getpixel((5,0))
-# testString = str(index)
-# print(testString)
-
+output = BMPtoBinary("testFrames", inputPath)
+# print(outputPath)
+outputFile = open(outputPath, "w")
+outputFile.write(output)
+outputFile.close()
