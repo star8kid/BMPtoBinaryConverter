@@ -1,1 +1,1 @@
-# BMPtoBinaryConverter
+# ImagetoBinaryConverter
